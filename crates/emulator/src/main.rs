@@ -229,6 +229,7 @@ impl Framebuffer for FBCanvas {
 }
 
 fn main() -> Result<(), Error> {
+    env_logger::init();
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let (width, height) = CURRENT_DEVICE.dims;

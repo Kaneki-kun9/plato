@@ -9,4 +9,5 @@ name = "plato"
 path = "src/main.rs"
 
 [dependencies]
+env_logger = "0.11.8"
 plato-core = { path = "../core" }

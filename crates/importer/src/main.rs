@@ -10,6 +10,8 @@ use plato_core::metadata::{extract_metadata_from_document, extract_metadata_from
 use plato_core::metadata::{consolidate, rename_from_info};
 
 fn main() -> Result<(), Error> {
+    env_logger::init();
+
     let args: Vec<String> = env::args().skip(1).collect();
 
     let mut opts = Options::new();

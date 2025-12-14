@@ -118,6 +118,8 @@ fn is_detail_available(client: &Client, settings: &Settings) -> bool {
 }
 
 fn main() -> Result<(), Error> {
+    env_logger::init();
+
     let mut args = env::args().skip(1);
     let library_path = PathBuf::from(args.next()
                                          .ok_or_else(|| format_err!("missing argument: library path"))?);
