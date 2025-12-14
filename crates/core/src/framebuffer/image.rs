@@ -1,9 +1,9 @@
-use std::fs::File;
-use std::path::Path;
-use anyhow::{Error, Context, format_err};
 use super::{Framebuffer, UpdateMode};
 use crate::color::{Color, WHITE};
-use crate::geom::{Rectangle, lerp};
+use crate::geom::{lerp, Rectangle};
+use anyhow::{format_err, Context, Error};
+use std::fs::File;
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 pub struct Pixmap {
@@ -73,7 +73,7 @@ impl Pixmap {
         if self.samples == 1 {
             Color::Gray(self.data[addr])
         } else {
-            Color::from_rgb(&self.data[addr..addr+3])
+            Color::from_rgb(&self.data[addr..addr + 3])
         }
     }
 }
@@ -91,7 +91,7 @@ impl Framebuffer for Pixmap {
             self.data[addr] = color.gray();
         } else {
             let rgb = color.rgb();
-            self.data[addr..addr+3].copy_from_slice(&rgb);
+            self.data[addr..addr + 3].copy_from_slice(&rgb);
         }
     }
 
@@ -111,7 +111,7 @@ impl Framebuffer for Pixmap {
             self.data[addr] = lerp(self.data[addr] as f32, color.gray() as f32, alpha) as u8;
         } else {
             let rgb = color.rgb();
-            for (i, c) in self.data[addr..addr+3].iter_mut().enumerate() {
+            for (i, c) in self.data[addr..addr + 3].iter_mut().enumerate() {
                 *c = lerp(*c as f32, rgb[i] as f32, alpha) as u8;
             }
         }
@@ -127,7 +127,7 @@ impl Framebuffer for Pixmap {
                 if self.samples == 1 {
                     self.data[addr] = 255 - self.data[addr];
                 } else {
-                    for c in self.data[addr..addr+3].iter_mut() {
+                    for c in self.data[addr..addr + 3].iter_mut() {
                         *c = 255 - *c;
                     }
                 }
@@ -145,7 +145,7 @@ impl Framebuffer for Pixmap {
                 if self.samples == 1 {
                     self.data[addr] = self.data[addr].saturating_sub(drift);
                 } else {
-                    for c in self.data[addr..addr+3].iter_mut() {
+                    for c in self.data[addr..addr + 3].iter_mut() {
                         *c = c.saturating_sub(drift);
                     }
                 }
@@ -166,12 +166,21 @@ impl Framebuffer for Pixmap {
             return Err(format_err!("nothing to save"));
         }
         let (width, height) = self.dims();
-        let file = File::create(path).with_context(|| format!("can't create output file {}", path))?;
+        let file =
+            File::create(path).with_context(|| format!("can't create output file {}", path))?;
         let mut encoder = png::Encoder::new(file, width, height);
         encoder.set_depth(png::BitDepth::Eight);
-        encoder.set_color(if self.samples == 3 { png::ColorType::Rgb } else { png::ColorType::Grayscale });
-        let mut writer = encoder.write_header().with_context(|| format!("can't write PNG header for {}", path))?;
-        writer.write_image_data(&self.data).with_context(|| format!("can't write PNG data to {}", path))?;
+        encoder.set_color(if self.samples == 3 {
+            png::ColorType::Rgb
+        } else {
+            png::ColorType::Grayscale
+        });
+        let mut writer = encoder
+            .write_header()
+            .with_context(|| format!("can't write PNG header for {}", path))?;
+        writer
+            .write_image_data(&self.data)
+            .with_context(|| format!("can't write PNG data to {}", path))?;
         Ok(())
     }
 
@@ -179,14 +188,11 @@ impl Framebuffer for Pixmap {
         Err(format_err!("unsupported"))
     }
 
-    fn set_monochrome(&mut self, _enable: bool) {
-    }
+    fn set_monochrome(&mut self, _enable: bool) {}
 
-    fn set_dithered(&mut self, _enable: bool) {
-    }
+    fn set_dithered(&mut self, _enable: bool) {}
 
-    fn set_inverted(&mut self, _enable: bool) {
-    }
+    fn set_inverted(&mut self, _enable: bool) {}
 
     fn monochrome(&self) -> bool {
         false
